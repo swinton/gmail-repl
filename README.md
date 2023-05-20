@@ -37,41 +37,19 @@ let data
 { data } = await gmail.users.messages.get({ userId: 'me', id: '1883a5111e8ef47c' })
 ```
 
-### List labels
-> [`users.labels.list`](https://developers.google.com/gmail/api/reference/rest/v1/users.labels/list)
-
-```javascript
-let data
-{ data } = await gmail.users.labels.list({ userId: 'me' })
-data.labels
-```
-
-### List threads
-> [`users.threads.list`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list)
-
-```javascript
-let data
-{ data } = await gmail.users.threads.list({ userId: 'me' })
-{ data } = await gmail.users.threads.list({ userId: 'me', q: 'category:promotions -is:important -is:starred', maxResults: 500 })
-```
-
-### Bulk delete unimportant promotional threads, one at a time
-> [`users.threads.delete`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/delete)
-
-```javascript
-await bulkDeleteThreads('category:promotions -is:important -is:starred')
-```
-
-### Batch delete unimportant promotional messages
+### Batch delete
 > [`users.messages.batchDelete`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete)
+
+- See: [Search operators you can use with Gmail](https://support.google.com/mail/answer/7190?hl=en)
+
+#### Batch delete unimportant promotional messages
 
 ```javascript
 await batchDeleteMessages('category:promotions -is:important -is:starred')
 ```
 
-### Batch delete 500 unstarred, unimportant threads in the promotions category
+#### Batch delete messages from before 2021
+
 ```javascript
-let data
-{ data } = await gmail.users.threads.list({ userId: 'me', q: 'category:promotions -is:important -is:starred', maxResults: 500 })
-{ data } = await gmail.users.messages.batchDelete({ userId: 'me', ids: data.threads.map(thread => thread.id) })
+await batchDeleteMessages('before:2021/01/01')
 ```
