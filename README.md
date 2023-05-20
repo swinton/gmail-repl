@@ -2,6 +2,10 @@
 
 > A REPL for GMail
 
+## Setup
+
+Follow [the Node.js quickstart](https://developers.google.com/gmail/api/quickstart/nodejs) from the Gmail for Developers guide, and make sure your [desktop application credentials](https://developers.google.com/gmail/api/quickstart/nodejs#authorize_credentials_for_a_desktop_application) are stored in a `credentials.json` file -- see [`credentials-example.json`](credentials.example.json) for an example.
+
 ## Usage
 ```shell
 ./repl.js
