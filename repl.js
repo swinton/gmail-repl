@@ -155,23 +155,26 @@ function bulkCollectThreads(gmail) {
 }
 
 // Context initializer
-const initializeContext = async context => {
-  const auth = await authorize();
-  context.gmail = google.gmail({version: 'v1', auth});
-  context.getProfile = getProfile(context.gmail);
-  context.listMessages = listMessages(context.gmail);
-  context.getMessage = getMessage(context.gmail);
-  context.bulkDeleteThreads = bulkDeleteThreads(context.gmail);
-  context.batchDeleteMessages = batchDeleteMessages(context.gmail);
-  context.bulkCollectThreads = bulkCollectThreads(context.gmail);
+const initializeContext = async (context, gmail) => {
+  context.gmail = gmail;
+  context.profile = getProfile(gmail);
+  context.messages = listMessages(gmail);
+  context.message = getMessage(gmail);
+  context.bulkDeleteThreads = bulkDeleteThreads(gmail);
+  context.batchDeleteMessages = batchDeleteMessages(gmail);
+  context.bulkCollectThreads = bulkCollectThreads(gmail);
 };
 
 (async () => {
+  const auth = await authorize();
+  const gmail = google.gmail({version: 'v1', auth});
+  const profile = await (getProfile(gmail))()
+
   // Start a repl
-  const r = repl.start('📧 ❯ ');
+  const r = repl.start(`📧 ${ profile.emailAddress } ❯ `);
 
   // Initialize
-  await initializeContext(r.context);
+  await initializeContext(r.context, gmail);
 
   // Listen for the reset event
   r.on('reset', initializeContext);

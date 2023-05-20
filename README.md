@@ -13,7 +13,7 @@
 > [`users.getProfile`](https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile)
 
 ```javascript
-await getProfile()
+await profile()
 ```
 
 ### List messages
@@ -23,20 +23,20 @@ await getProfile()
 
 ```javascript
 // List all messages
-await listMessages()
+await messages()
 
 // List all from <email>
-await listMessages('from:me@example.com')
+await messages('from:me@example.com')
 
 // List unread from <email> sent after <date>
-await listMessages('from:me@example.com is:unread after:2023/05/19')
+await messages('from:me@example.com is:unread after:2023/05/19')
 ```
 
 ### Read a message
 > [`users.messages.get`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get)
 
 ```javascript
-await getMessage('1883a5111e8ef47c')
+await message('1883a5111e8ef47c')
 ```
 
 ### Batch delete
