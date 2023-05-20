@@ -39,6 +39,23 @@ await messages('from:me@example.com is:unread after:2023/05/19')
 await message('1883a5111e8ef47c')
 ```
 
+### List threads
+> [`users.threads.list`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list)
+
+- See: [Search operators you can use with Gmail](https://support.google.com/mail/answer/7190?hl=en)
+
+```javascript
+// List all threads
+await threads()
+
+// List all from <email>
+await threads('from:me@example.com')
+
+// List unread from <email> sent after <date>
+await threads('from:me@example.com is:unread after:2023/05/19')
+
+```
+
 ### Batch delete
 > [`users.messages.batchDelete`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete)
 
