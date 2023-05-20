@@ -81,8 +81,10 @@ function batchDeleteMessages(gmail) {
       const { data } = await gmail.users.messages.list({ userId: 'me', q, maxResults: 500, pageToken })
       pageToken = data.nextPageToken
 
-      // Batch delete all of them
-      await gmail.users.messages.batchDelete({ userId: 'me', ids: data.messages.map(msg => msg.id) })
+      if (typeof data.messages !== 'undefined' && data.messages.length > 0) {
+        // Batch delete all of them
+        await gmail.users.messages.batchDelete({ userId: 'me', ids: data.messages.map(msg => msg.id) })
+      }
     }
   }
 }
