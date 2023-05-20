@@ -71,10 +71,26 @@ async function authorize() {
   return client;
 }
 
+function bulkDeleteThreads(gmail) {
+  return async function(q) {
+    const { data } = await gmail.users.threads.list({ userId: 'me', q, maxResults: 500 })
+    while (data.threads.length) {
+      await Promise.all(
+        data.threads.splice(0, 10).map(
+          thread => {
+            return gmail.users.threads.delete( { userId: 'me', id: thread.id } )
+          }
+        )
+      )
+    }
+  }
+}
+
 // Context initializer
 const initializeContext = async context => {
   const auth = await authorize();
   context.gmail = google.gmail({version: 'v1', auth});
+  context.bulkDeleteThreads = bulkDeleteThreads(context.gmail);
 };
 
 (async () => {

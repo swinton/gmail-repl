@@ -55,6 +55,13 @@ let data
 { data } = await gmail.users.threads.list({ userId: 'me', q: 'category:promotions -is:important -is:starred', maxResults: 500 })
 ```
 
+### Delete multiple threads, one at a time
+> [`users.threads.delete`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/delete)
+
+```javascript
+await bulkDeleteThreads('category:promotions -is:important -is:starred')
+```
+
 ### Batch delete
 > [`users.messages.batchDelete`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete)
 
