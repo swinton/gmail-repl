@@ -130,7 +130,7 @@ const initializeContext = async context => {
 
 (async () => {
   // Start a repl
-  const r = repl.start('> ');
+  const r = repl.start('📧 ❯ ');
 
   // Initialize
   await initializeContext(r.context);
