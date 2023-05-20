@@ -9,6 +9,7 @@ const homedir = require('os').homedir();
 
 const {authenticate} = require('@google-cloud/local-auth');
 const {google} = require('googleapis');
+const { type } = require('os');
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://mail.google.com/'];
@@ -73,15 +74,19 @@ async function authorize() {
 
 function bulkDeleteThreads(gmail) {
   return async function(q) {
-    const { data } = await gmail.users.threads.list({ userId: 'me', q, maxResults: 500 })
-    while (data.threads.length) {
-      await Promise.all(
-        data.threads.splice(0, 10).map(
-          thread => {
-            return gmail.users.threads.delete( { userId: 'me', id: thread.id } )
-          }
+    let pageToken = ''
+    while (typeof pageToken !== 'undefined') {
+      const { data } = await gmail.users.threads.list({ userId: 'me', q, maxResults: 500, pageToken })
+      pageToken = data.nextPageToken
+      while (data.threads.length) {
+        await Promise.all(
+          data.threads.splice(0, 10).map(
+            thread => {
+              return gmail.users.threads.delete( { userId: 'me', id: thread.id } )
+            }
+          )
         )
-      )
+      }
     }
   }
 }
