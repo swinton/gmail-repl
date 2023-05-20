@@ -1,0 +1,17 @@
+{
+  "name": "gmail-repl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "repl.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/local-auth": "^2.1.1",
+    "dotenv": "^16.0.3",
+    "googleapis": "^118.0.0"
+  }
+}
