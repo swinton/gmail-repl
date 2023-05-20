@@ -13,8 +13,7 @@
 > [`users.getProfile`](https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile)
 
 ```javascript
-let data
-{ data } = await gmail.users.getProfile({ userId: 'me' })
+await getProfile()
 ```
 
 ### List messages
@@ -23,18 +22,21 @@ let data
 - See: [Search operators you can use with Gmail](https://support.google.com/mail/answer/7190?hl=en)
 
 ```javascript
-let data
-{ data } = await gmail.users.messages.list({ userId: 'me' })
-{ data } = await gmail.users.messages.list({ userId: 'me', q: 'from:stevewinton@gmail.com' })
-{ data } = await gmail.users.messages.list({ userId: 'me', q: 'from:stevewinton@gmail.com is:unread after:2023/05/19' })
+// List all messages
+await listMessages()
+
+// List all from <email>
+await listMessages('from:me@example.com')
+
+// List unread from <email> sent after <date>
+await listMessages('from:me@example.com is:unread after:2023/05/19')
 ```
 
 ### Read a message
 > [`users.messages.get`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get)
 
 ```javascript
-let data
-{ data } = await gmail.users.messages.get({ userId: 'me', id: '1883a5111e8ef47c' })
+await getMessage('1883a5111e8ef47c')
 ```
 
 ### Batch delete
