@@ -72,6 +72,21 @@ async function authorize() {
   return client;
 }
 
+function batchDeleteMessages(gmail) {
+  // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete
+  return async function(q) {
+    let pageToken = ''
+    while (typeof pageToken !== 'undefined') {
+      // Get messages
+      const { data } = await gmail.users.messages.list({ userId: 'me', q, maxResults: 500, pageToken })
+      pageToken = data.nextPageToken
+
+      // Batch delete all of them
+      await gmail.users.messages.batchDelete({ userId: 'me', ids: data.messages.map(msg => msg.id) })
+    }
+  }
+}
+
 function bulkDeleteThreads(gmail) {
   return async function(q) {
     let pageToken = ''
@@ -91,11 +106,26 @@ function bulkDeleteThreads(gmail) {
   }
 }
 
+function bulkCollectThreads(gmail) {
+  return async function(q) {
+    let pageToken = ''
+    const threads = []
+    while (typeof pageToken !== 'undefined') {
+      let { data } = await gmail.users.threads.list({ userId: 'me', q, maxResults: 500, pageToken })
+      pageToken = data.nextPageToken
+      threads.push(...data.threads)
+    }
+    return threads
+  }
+}
+
 // Context initializer
 const initializeContext = async context => {
   const auth = await authorize();
   context.gmail = google.gmail({version: 'v1', auth});
   context.bulkDeleteThreads = bulkDeleteThreads(context.gmail);
+  context.batchDeleteMessages = batchDeleteMessages(context.gmail);
+  context.bulkCollectThreads = bulkCollectThreads(context.gmail);
 };
 
 (async () => {

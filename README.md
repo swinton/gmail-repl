@@ -55,19 +55,18 @@ let data
 { data } = await gmail.users.threads.list({ userId: 'me', q: 'category:promotions -is:important -is:starred', maxResults: 500 })
 ```
 
-### Delete multiple threads, one at a time
+### Bulk delete unimportant promotional threads, one at a time
 > [`users.threads.delete`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/delete)
 
 ```javascript
 await bulkDeleteThreads('category:promotions -is:important -is:starred')
 ```
 
-### Batch delete
+### Batch delete unimportant promotional messages
 > [`users.messages.batchDelete`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete)
 
 ```javascript
-let data
-{ data } = await gmail.users.messages.batchDelete({ userId: 'me', ids: ['1883a5111e8ef47c'] })
+await batchDeleteMessages('category:promotions -is:important -is:starred')
 ```
 
 ### Batch delete 500 unstarred, unimportant threads in the promotions category
