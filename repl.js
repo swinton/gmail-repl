@@ -122,6 +122,14 @@ function listThreads(gmail) {
   }
 }
 
+function getThread(gmail) {
+  // https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get
+  return async function(id, params = {}) {
+    const resp = await gmail.users.threads.get({ userId: 'me', id, ...params })
+    return resp.data
+  }
+}
+
 function batchDeleteMessages(gmail) {
   // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete
   return async function(q) {
@@ -165,6 +173,7 @@ const initializeContext = async (context, gmail) => {
   context.messages = listMessages(gmail);
   context.threads = listThreads(gmail);
   context.message = getMessage(gmail);
+  context.thread = getThread(gmail);
   context.bulkDeleteThreads = bulkDeleteThreads(gmail);
   context.batchDeleteMessages = batchDeleteMessages(gmail);
 };

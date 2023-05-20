@@ -56,6 +56,13 @@ await threads('from:me@example.com is:unread after:2023/05/19')
 
 ```
 
+### Read a thread
+> [`users.threads.get`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get)
+
+```javascript
+await thread('1883b361aaef86b6')
+```
+
 ### Batch delete
 > [`users.messages.batchDelete`](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete)
 
