@@ -6,10 +6,12 @@ const process = require('process');
 const repl = require('repl');
 const path = require('path');
 const homedir = require('os').homedir();
-
-const {authenticate} = require('@google-cloud/local-auth');
-const {google} = require('googleapis');
 const { type } = require('os');
+
+const { authenticate } = require('@google-cloud/local-auth');
+const { google } = require('googleapis');
+
+const _ = require('lodash');
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://mail.google.com/'];
@@ -72,96 +74,65 @@ async function authorize() {
   return client;
 }
 
-function getProfile(gmail) {
+async function getProfile(gmail) {
   // https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile
-  return async function(params) {
-    const resp = await gmail.users.getProfile({ userId: 'me', ...params})
-    return resp.data
-  }
+  const resp = await gmail.users.getProfile({ userId: 'me'})
+  return resp.data
 }
 
-function listMessages(gmail) {
+async function listMessages(gmail, q, params = {}) {
   // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list
-  return async function(q, params = {}) {
-    let pageToken = ''
-    const messages = []
-    while (typeof pageToken !== 'undefined') {
-      const { data } = await gmail.users.messages.list({ userId: 'me', maxResults: 500, pageToken, q, ...params })
-      pageToken = data.nextPageToken
+  let pageToken = ''
+  const messages = []
+  while (typeof pageToken !== 'undefined') {
+    const { data } = await gmail.users.messages.list({ userId: 'me', maxResults: 500, pageToken, q, ...params })
+    pageToken = data.nextPageToken
 
-      if (typeof data.messages !== 'undefined' && data.messages.length > 0) {
-        messages.push(...data.messages)
-      }
-   }
-   return messages
-  }
-}
-
-function getMessage(gmail) {
-  // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get
-  return async function(id, params = {}) {
-    const resp = await gmail.users.messages.get({ userId: 'me', id, ...params })
-    return resp.data
-  }
-}
-
-function listThreads(gmail) {
-  // https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list
-  return async function(q, params = {}) {
-    let pageToken = ''
-    const threads = []
-    while (typeof pageToken !== 'undefined') {
-      const { data } = await gmail.users.threads.list({ userId: 'me', maxResults: 500, pageToken, q, ...params })
-      pageToken = data.nextPageToken
-
-      if (typeof data.threads !== 'undefined' && data.threads.length > 0) {
-        threads.push(...data.threads)
-      }
-   }
-   return threads
-  }
-}
-
-function getThread(gmail) {
-  // https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get
-  return async function(id, params = {}) {
-    const resp = await gmail.users.threads.get({ userId: 'me', id, ...params })
-    return resp.data
-  }
-}
-
-function batchDeleteMessages(gmail) {
-  // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete
-  return async function(q) {
-    let pageToken = ''
-    while (typeof pageToken !== 'undefined') {
-      // Get messages
-      const { data } = await gmail.users.messages.list({ userId: 'me', q, maxResults: 500, pageToken })
-      pageToken = data.nextPageToken
-
-      if (typeof data.messages !== 'undefined' && data.messages.length > 0) {
-        // Batch delete all of them
-        await gmail.users.messages.batchDelete({ userId: 'me', ids: data.messages.map(msg => msg.id) })
-      }
+    if (typeof data.messages !== 'undefined' && data.messages.length > 0) {
+      messages.push(...data.messages)
     }
   }
+  return messages
 }
 
-function bulkDeleteThreads(gmail) {
-  return async function(q) {
-    let pageToken = ''
-    while (typeof pageToken !== 'undefined') {
-      const { data } = await gmail.users.threads.list({ userId: 'me', q, maxResults: 500, pageToken })
-      pageToken = data.nextPageToken
-      while (data.threads.length) {
-        await Promise.all(
-          data.threads.splice(0, 10).map(
-            thread => {
-              return gmail.users.threads.delete( { userId: 'me', id: thread.id } )
-            }
-          )
-        )
-      }
+async function getMessage(gmail, id, params = {}) {
+  // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get
+  const resp = await gmail.users.messages.get({ userId: 'me', id, ...params })
+  return resp.data
+}
+
+async function listThreads(gmail, q, params = {}) {
+  // https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list
+  let pageToken = ''
+  const threads = []
+  while (typeof pageToken !== 'undefined') {
+    const { data } = await gmail.users.threads.list({ userId: 'me', maxResults: 500, pageToken, q, ...params })
+    pageToken = data.nextPageToken
+
+    if (typeof data.threads !== 'undefined' && data.threads.length > 0) {
+      threads.push(...data.threads)
+    }
+ }
+ return threads
+}
+
+async function getThread(gmail, id, params = {}) {
+  // https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get
+  const resp = await gmail.users.threads.get({ userId: 'me', id, ...params })
+  return resp.data
+}
+
+async function batchDeleteMessages(gmail, q) {
+  // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete
+  let pageToken = ''
+  while (typeof pageToken !== 'undefined') {
+    // Get messages
+    const { data } = await gmail.users.messages.list({ userId: 'me', q, maxResults: 500, pageToken })
+    pageToken = data.nextPageToken
+
+    if (typeof data.messages !== 'undefined' && data.messages.length > 0) {
+      // Batch delete all of them
+      await gmail.users.messages.batchDelete({ userId: 'me', ids: data.messages.map(msg => msg.id) })
     }
   }
 }
@@ -169,19 +140,19 @@ function bulkDeleteThreads(gmail) {
 // Context initializer
 const initializeContext = async (context, gmail) => {
   context.gmail = gmail;
-  context.profile = getProfile(gmail);
-  context.messages = listMessages(gmail);
-  context.threads = listThreads(gmail);
-  context.message = getMessage(gmail);
-  context.thread = getThread(gmail);
-  context.bulkDeleteThreads = bulkDeleteThreads(gmail);
-  context.batchDeleteMessages = batchDeleteMessages(gmail);
+  context.profile = _.partial(getProfile, gmail);
+  context.messages = _.partial(listMessages, gmail);
+  context.message = _.partial(getMessage, gmail);
+  context.threads = _.partial(listThreads, gmail);
+  context.thread = _.partial(getThread, gmail);
+  context.unread = _.partial(listThreads, gmail, 'is:unread');
+  context.bulkDeleteThreads = _.partial(batchDeleteMessages, gmail);
 };
 
 (async () => {
   const auth = await authorize();
   const gmail = google.gmail({version: 'v1', auth});
-  const profile = await (getProfile(gmail))()
+  const profile = await getProfile(gmail);
 
   // Start a repl
   const r = repl.start(`📧 ${ profile.emailAddress } ❯ `);
