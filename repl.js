@@ -122,6 +122,41 @@ async function getThread(gmail, id, params = {}) {
   return resp.data
 }
 
+function decodeMessage(message) {
+  const headers = (message.payload && message.payload.headers) || [];
+  const header = (name) => (headers.find(h => h.name.toLowerCase() === name.toLowerCase()) || {}).value || null;
+
+  function findPart(payload, mimeType) {
+    if (payload.mimeType === mimeType && payload.body && payload.body.data) {
+      return payload.body.data;
+    }
+    for (const part of (payload.parts || [])) {
+      const found = findPart(part, mimeType);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  const payload = message.payload || {};
+  const plainB64 = findPart(payload, 'text/plain');
+  const htmlB64 = !plainB64 && findPart(payload, 'text/html');
+  const b64 = plainB64 || htmlB64;
+  let body = null;
+  if (b64) {
+    const text = Buffer.from(b64, 'base64url').toString('utf-8');
+    body = htmlB64 ? text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : text;
+  }
+
+  return {
+    id: message.id,
+    from: header('From'),
+    to: header('To'),
+    subject: header('Subject'),
+    date: header('Date'),
+    body,
+  };
+}
+
 async function batchDeleteMessages(gmail, q) {
   // https://developers.google.com/gmail/api/reference/rest/v1/users.messages/batchDelete
   let pageToken = ''
@@ -147,6 +182,7 @@ const initializeContext = async (context, gmail) => {
   context.thread = _.partial(getThread, gmail);
   context.unread = _.partial(listThreads, gmail, 'is:unread');
   context.bulkDeleteThreads = _.partial(batchDeleteMessages, gmail);
+  context.decode = decodeMessage;
 };
 
 (async () => {
