@@ -43,6 +43,22 @@ await messages('from:me@example.com is:unread after:2023/05/19')
 await message('1883a5111e8ef47c')
 ```
 
+### Decode a message
+
+The raw API response contains base64-encoded MIME parts and headers buried in arrays. `decode` extracts the key headers and body into a readable object.
+
+```javascript
+// Decode a raw message
+decode(await message('1883a5111e8ef47c'))
+// → { id, from, to, subject, date, body }
+
+// Decode all messages in a thread
+const t = await thread('1883b361aaef86b6')
+t.messages.map(decode)
+```
+
+`decode` prefers `text/plain` body parts and falls back to tag-stripped HTML if no plain text is available.
+
 ### List threads
 > [`users.threads.list`](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list)
 
